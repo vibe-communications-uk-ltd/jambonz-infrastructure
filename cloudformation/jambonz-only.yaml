@@ -885,6 +885,36 @@ Resources:
               EOF
               echo "finished writing config file"
 
+              JB_TAG_LATEST=$(aws ssm get-parameter --name "jb.tag.latest" --region=${AWS_REGION} | jq -r '.Parameter.Value')
+              JB_TAG=$(aws ssm get-parameter --name "jb.tag" --region=${AWS_REGION} | jq -r '.Parameter.Value')
+              if [[ "$JB_TAG_LATEST" = "yes" ]]; then
+
+                echo "found ssm jambones tag, pulling latest sbc-outbound $JB_TAG"
+                git -C /home/admin/apps/sbc-outbound fetch --all --tags
+                git -C /home/admin/apps/sbc-outbound checkout $JB_TAG -b $JB_TAG-branch
+                npm --prefix /home/admin/apps/sbc-outbound install
+                echo "finished pulling latest sbc-outbound tag $JB_TAG"
+
+                echo "found ssm jambones tag, pulling latest sbc-inbound $JB_TAG"
+                git -C /home/admin/apps/sbc-inbound fetch --all --tags
+                git -C /home/admin/apps/sbc-inbound checkout $JB_TAG -b $JB_TAG-branch
+                npm --prefix /home/admin/apps/sbc-inbound install
+                echo "finished pulling latest sbc-inbound tag $JB_TAG"
+
+                echo "found ssm jambones tag, pulling latest sbc-registrar $JB_TAG"
+                git -C /home/admin/apps/sbc-registrar fetch --all --tags
+                git -C /home/admin/apps/sbc-registrar checkout $JB_TAG -b $JB_TAG-branch
+                npm --prefix /home/admin/apps/sbc-registrar install
+                echo "finished pulling latest sbc-registrar tag $JB_TAG"
+
+                echo "found ssm jambones tag, pulling latest jambonz-smpp-esme $JB_TAG"
+                git -C /home/admin/apps/jambonz-smpp-esme fetch --all --tags
+                git -C /home/admin/apps/jambonz-smpp-esme checkout $JB_TAG -b $JB_TAG-branch
+                npm --prefix /home/admin/apps/jambonz-smpp-esme install
+                echo "finished pulling latest jambonz-smpp-esme tag $JB_TAG"
+
+              fi
+
               echo "restarting telegraf"
               # configure telegraph to send to the monitoring server
               sudo sed -i -e "s/influxdb:8086/${MONITORING_SERVER_IP}:8086/g"  /etc/telegraf/telegraf.conf
@@ -1022,6 +1052,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSNSFullAccess
         - arn:aws:iam::aws:policy/AutoScalingReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
 
   # --- Feature server EC2 Role Instance profile
   FeatureServerInstanceProfile:
@@ -1102,6 +1133,17 @@ Resources:
               EOF
 
               echo "finished writing config file"
+
+
+              JB_TAG_LATEST=$(aws ssm get-parameter --name "jb.tag.latest" --region=${AWS_REGION} | jq -r '.Parameter.Value')
+              JB_TAG=$(aws ssm get-parameter --name "jb.tag" --region=${AWS_REGION} | jq -r '.Parameter.Value')
+              if [[ "$JB_TAG_LATEST" = "yes" ]]; then
+                echo "found ssm jambones tag, pulling latest $JB_TAG"
+                git -C /home/admin/apps/jambonz-feature-server fetch --all --tags
+                git -C /home/admin/apps/jambonz-feature-server checkout $JB_TAG -b $JB_TAG-branch
+                npm --prefix /home/admin/apps/jambonz-feature-server install
+                echo "finished pulling latest jambones tag $JB_TAG"
+              fi
 
               sudo -u admin bash -c "pm2 start /home/admin/apps/ecosystem.config.js"
               sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u admin --hp /home/admin
@@ -1199,6 +1241,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSNSFullAccess
         - arn:aws:iam::aws:policy/AutoScalingReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
 
   # --- Feature server EC2 Role Instance profile
   SbcRTPServerInstanceProfile:
@@ -1262,6 +1305,17 @@ Resources:
               };
               EOF
               echo "finished writing config file"
+
+              JB_TAG_LATEST=$(aws ssm get-parameter --name "jb.tag.latest" --region=${AWS_REGION} | jq -r '.Parameter.Value')
+              JB_TAG=$(aws ssm get-parameter --name "jb.tag" --region=${AWS_REGION} | jq -r '.Parameter.Value')
+              if [[ "$JB_TAG_LATEST" = "yes" ]]; then
+               echo "found ssm jambones tag, pulling latest sbc-rtpengine-sidecar $JB_TAG"
+               git -C /home/admin/apps/sbc-rtpengine-sidecar fetch --all --tags
+               git -C /home/admin/apps/sbc-rtpengine-sidecar $JB_TAG -b $JB_TAG-branch
+               npm --prefix /home/admin/apps/sbc-rtpengine-sidecar install
+               echo "finished pulling latest jambones sbc-rtpengine-sidecar $JB_TAG"
+              fi
+
               sudo -u admin bash -c "pm2 start /home/admin/apps/ecosystem.config.js"
               sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u admin --hp /home/admin
               sudo -u admin bash -c "pm2 save"
@@ -1360,6 +1414,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEC2FullAccess
         - arn:aws:iam::aws:policy/AutoScalingReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
 
   # --- Webserver EC2 Role Instance profile
   WebServerInstanceProfile:
@@ -1474,6 +1529,25 @@ Resources:
               EOF
 
               echo "finished writing config file"
+
+
+              JB_TAG_LATEST=$(aws ssm get-parameter --name "jb.tag.latest" --region=${AWS_REGION} | jq -r '.Parameter.Value')
+              JB_TAG=$(aws ssm get-parameter --name "jb.tag" --region=${AWS_REGION} | jq -r '.Parameter.Value')
+              if [[ "$JB_TAG_LATEST" = "yes" ]]; then
+
+                echo "found ssm jambones tag, pulling latest jambonz-api-server $JB_TAG"
+                git -C /home/admin/apps/jambonz-api-server fetch --all --tags
+                git -C /home/admin/apps/jambonz-api-server $JB_TAG -b $JB_TAG-branch
+                npm --prefix /home/admin/apps/jambonz-api-server install
+                echo "finished pulling latest jambones jambonz-api-server $JB_TAG"
+
+                echo "found ssm jambones tag, pulling latest jambonz-webapp $JB_TAG"
+                git -C /home/admin/apps/jambonz-webapp fetch --all --tags
+                git -C /home/admin/apps/jambonz-webapp $JB_TAG -b $JB_TAG-branch
+                npm --prefix /home/admin/apps/jambonz-webapp install
+                echo "finished pulling latest jambones jambonz-webapp $JB_TAG"
+
+              fi
 
               sudo -u admin bash -c "pm2 start /home/admin/apps/ecosystem.config.js"
               sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u admin --hp /home/admin
